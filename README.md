@@ -1,114 +1,149 @@
-# Sujet & Cahier des charges — Réalisation Professionnelle
+# Coffre‑fort numérique — Mini client JavaFX (MVP pédagogique)
 
-> **Base pédagogique** : prolonge le TP « Mini coffre‑fort REST (Slim + Medoo) » ([repo de base : MVC-API-REST](https://github.com/AstrowareConception/MVC-API-REST)) en projet complet multi‑équipes. On passe d’un **CRUD fichiers** à un **coffre‑fort numérique** avec comptes, sécurité, partages et double client (JavaFX + Web).
+Ce dépôt fournit un mini client lourd JavaFX servant d’exemple pour le projet « Coffre‑fort numérique » destiné aux étudiants. Il s’appuie sur le sujet du projet principal et donne un prototype MVP exécutable, minimal, pour comprendre ce qui est attendu côté client lourd, ainsi qu’un boilerplate JavaFX prêt à brancher sur une vraie API.
 
----
+Référence projet global (back/API) : https://github.com/AstrowareConception/Coffre-fort-numerique
 
-## 1) Vision & objectifs
-
-* Concevoir et livrer un **coffre‑fort numérique sécurisé** permettant à un utilisateur de **déposer, organiser, partager** et **suivre** des fichiers.
-* Industrialiser côté back‑end (Slim + Medoo), définir un **contrat d’API** partagé, développer un **client JavaFX** (dépôt/gestion) et un **client Web** (consultation/téléchargement via liens partagés).
-* Apprendre à travailler **en parallèle** (équipes Back / JavaFX / Web / Ops), à synchroniser via **OpenAPI**, **GitHub Projects**, **branches/PR** et **revues de code**.
-
-**Livrable attendu en fin de projet** : MVP fonctionnel + documentation + tests + démo.
+Objectifs du dépôt :
+- Démarrer rapidement un client JavaFX fonctionnel sans backend (tout est simulé).
+- Montrer la structure de code attendue (FXML + contrôleurs + modèles + client API).
+- Guider l’intégration progressive d’un vrai backend REST et l’industrialisation du client.
 
 ---
 
-## 2) Périmètre fonctionnel
+## Démarrage rapide
 
-### 2.1 Comptes & sécurité
+Prérequis :
+- JDK 17 à 21 installé (vérifier avec `java -version`).
+- Maven installé (ou utilisable via votre IDE).
 
-* **Création de compte** et **authentification** par **JWT** (sessions stateless).
-* **Rôles** : Utilisateur (propriétaire de coffre), Admin (gestion quotas, supervision logs).
-* **Politique de mots de passe** + hachage **Argon2id**.
-
-### 2.2 Stockage sécurisé de fichiers
-
-* **Chiffrement au repos** obligatoire.
-
-  * Recommandation par défaut : **AES‑256‑GCM** (symétrique) pour le contenu des fichiers.
-  * **Enveloppe de clés** (asymétrique) : la clé de fichier (aléatoire) est chiffrée par une **clé publique serveur** (RSA‑OAEP ou X25519 + libsodium). Stockage séparé des secrets.
-  * Les étudiants peuvent proposer une variante (tout symétrique + KMS applicatif) **à condition de justifier** la décision (fiche de veille).
-* **Organisation** : dossiers hiérarchiques (+ tags optionnels).
-* **Versionnage** : remplacer un fichier crée **une nouvelle version** et **préserve les liens** existants (qui pointent par défaut vers la **dernière version** — option pour figer une version).
-
-### 2.3 Partage & diffusion
-
-* **Liens de partage** pour **fichiers** ou **dossiers** (URL signée) :
-
-  * **Durée de vie** (expiration horodatée) **ou** **nombre d’utilisations** (décrémenté à chaque téléchargement).
-  * **Révocation** immédiate par le propriétaire.
-  * Page publique minimaliste (client Web) pour le destinataire : voir la liste et **télécharger**.
-* **Journalisation** : ouverture/téléchargement (date/heure, IP, UA, succès/échec).
-
-### 2.4 Quotas & limites
-
-* **Quota d’espace** par utilisateur (valeur par défaut configurable), alertes à 80%/100%.
-* Taille maximale de fichier (paramétrable).
-
-### 2.5 Clients
-
-* **Client JavaFX (client lourd)** : authentification, explorer dossiers/fichiers, **upload**, **renommer/déplacer**, **supprimer**, **créer des liens** et **mettre à jour** (nouvelle version) un fichier. Indicateurs de quota et progression d’upload.
-* **Client Web (client léger)** :
-
-  * **Public** (destinataires) : page de téléchargement via lien sécurisé.
-  * **Privé (connecté)** : tableau de bord minimal (mes partages, compteur d’usages, révocation).
-
----
-
-## 3) Exigences non fonctionnelles
-
-* **HTTPS** partout, CORS maîtrisé.
-
----
-
-## Annexe — Mini client lourd JavaFX (FXML) d’exemple (inclus dans ce dépôt)
-
-Un mini client JavaFX exécutable est fourni pour servir de base pédagogique. Il ne fait pas de vrais appels REST : tout est simulé pour être lancé sans backend. Les écrans sont désormais réalisés en JavaFX avec des fichiers FXML. Les étudiants peuvent remplacer progressivement la simulation par de vrais appels HTTP en s’aidant du fichier `implementation-java.md`.
-
-Contenu pédagogique minimal fourni :
-- Écran de connexion (FXML: `src/main/resources/com/coffrefort/client/login.fxml`) contrôlé par `LoginController`.
-- Fenêtre principale (FXML: `src/main/resources/com/coffrefort/client/main.fxml`) contrôlée par `MainController` avec:
-  - Arborescence de dossiers (TreeView) simulée.
-  - Liste de fichiers (TableView) avec nom, taille et date.
-  - Bouton « Uploader (simulation) » ouvrant un sélecteur de fichier.
-  - Barre de progression de quota (valeurs simulées).
-- Client d’API simulé (`ApiClient`) et modèles (`NodeItem`, `FileEntry`, `Quota`).
-
-Prérequis:
-- JDK 17+ installé.
-- Maven installé (ou via l’IDE).
-
-Lancer l’application:
-1. Ouvrir un terminal à la racine du projet.
-2. Exécuter:
+Lancer depuis le terminal :
+1) À la racine du projet :
 ```
 mvn clean javafx:run
 ```
 
-Notes:
-- Les dépendances JavaFX sont gérées par Maven (plugin javafx-maven-plugin). Aucun SDK JavaFX séparé à installer.
-- Depuis l’IDE, exécutez la classe `com.coffrefort.client.Launcher` (évite l’erreur « JavaFX runtime components are missing »).
-- Pour brancher un vrai backend, remplacez les méthodes de `ApiClient` par des appels HTTP (OkHttp est déjà ajouté) et gérez le token d’authentification.
-- Le code source Java se trouve sous `src/main/java/com/coffrefort/client` et les fichiers FXML sous `src/main/resources/com/coffrefort/client`.
+Lancer depuis l’IDE (IntelliJ/ Eclipse) :
+- Exécutez la classe: `com.coffrefort.client.Launcher` (et non `App`).
+- Configurez un JDK 17–21 pour le projet.
 
-### Exécution depuis l’IDE (IntelliJ, Eclipse)
-- Sélectionnez et exécutez la classe `com.coffrefort.client.Launcher` (et non `App`).
-- Assurez‑vous que le SDK du projet est Java 17 à 21. JavaFX 21 n’est pas compatible avec les JDK expérimentaux 22+ au moment de l’écriture.
-- Alternative: utilisez systématiquement `mvn javafx:run` qui configure automatiquement le module‑path JavaFX.
-* **Logs structurés** (JSON), traçabilité des actions sensibles.
-* **Sauvegardes** BDD + fichiers et **test de restauration** (procédure écrite).
-* **Perf** : upload multi‑part, streaming download ; seuils paramétrables (ex. ≥ 200 Mo).
-* **RGPD** : mentions, export/suppression de compte (au moins conçu).
+Notes :
+- Le plugin `javafx-maven-plugin` gère le module‑path JavaFX automatiquement.
+- L’application démarre avec un écran de connexion, puis ouvre une fenêtre principale avec des données simulées.
 
 ---
 
-## 4) Architecture technique
+## Structure du projet et rôle de chaque classe/FXML
 
-* **Back‑end** : PHP 8.2+, **Slim** (MVC, middlewares), **Medoo**, MariaDB/MySQL ou PostgreSQL, **libsodium/OpenSSL**, JWT.
-* **Web** : HTML/CSS/JS (Bootstrap ok). Pas d’auth complexe côté public.
-* **JavaFX** : client lourd (jlink/jpackage), appels REST + upload avec barre de progression.
-* **Déploiement** : nginx/Apache + PHP‑FPM, variables **.env**, Docker **recommandé** (compose : api + db + reverse proxy).
+Paquet `com.coffrefort.client` :
+- `Launcher` — Point d’entrée recommandé depuis l’IDE. Lance `Application.launch(App.class, args)` pour éviter l’erreur « JavaFX runtime components are missing » avec certains JDK.
+- `App` — Classe JavaFX `Application`. Charge `login.fxml`, injecte `ApiClient` et ouvre la fenêtre principale (`main.fxml`) après connexion.
+- `ApiClient` — Client d’API simulé. Aujourd’hui, il retourne des données factices et simule l’authentification. À remplacer progressivement par de vrais appels HTTP (OkHttp inclus via Maven). Gère le `authToken`.
+
+Paquet `com.coffrefort.client.controllers` :
+- `LoginController` — Contrôleur de l’écran de connexion. Récupère email/mot de passe, appelle `apiClient.login(...)` et, en cas de succès, déclenche l’ouverture de la fenêtre principale.
+- `MainController` — Contrôleur de la fenêtre principale. Configure le TreeView, le TableView, la barre de quota, charge l’arborescence simulée via `apiClient.listRoot()` et le quota via `apiClient.getQuota()`. Le bouton « Uploader (simulation) » ouvre un sélecteur de fichier.
+
+Paquet `com.coffrefort.client.model` :
+- `NodeItem` — Modèle d’un dossier (nœud) contenant des sous‑dossiers et une liste de fichiers.
+- `FileEntry` — Modèle d’un fichier (nom, taille, date de mise à jour). Utilisé par la TableView.
+- `Quota` — Modèle pour l’espace utilisé et le quota maximum, expose un ratio d’usage.
+
+Ressources FXML `src/main/resources/com/coffrefort/client` :
+- `login.fxml` — Décrit l’UI de connexion (champ email, mot de passe, bouton Se connecter) et référence `LoginController`.
+- `main.fxml` — Décrit la fenêtre principale : `TreeView` pour les dossiers, `TableView` pour les fichiers, barre de progression du quota et bouton d’upload.
+
+Autres fichiers utiles :
+- `pom.xml` — Dépendances (JavaFX, OkHttp, Jackson), plugin JavaFX. Profil prêt pour `mvn javafx:run`.
+- `implementation-java.md` — Guide détaillé pour passer du mock aux vrais appels HTTP (exemples OkHttp/Jackson, upload multipart, gestion de token, découpage en services, etc.).
+
+---
+
+## Ce que vous devez faire (à partir du MVP)
+
+Intégrer un vrai backend et transformer ce MVP en logiciel opérationnel. Travaillez par incréments, branche par branche :
+
+1) Authentification réelle
+- Implémenter `ApiClient.login(email, password)` avec un appel HTTP vers l’API (JWT attendu en réponse).
+- Stocker de façon sûre le token (mémoire + persistance optionnelle chiffrée si « se souvenir de moi »).
+- Gérer les erreurs (401, messages utilisateur, états de bouton durant la requête).
+
+2) Parcours des dossiers/fichiers
+- Remplacer `listRoot()` pour appeler l’API et mapper la réponse JSON vers `NodeItem`/`FileEntry`.
+- Ajouter la navigation (ouvrir un dossier recharge le TableView depuis l’API).
+
+3) Upload et gestion de fichiers
+- Implémenter l’upload multipart (OkHttp) avec barre de progression et annulation.
+- Ajouter renommer/déplacer/supprimer (actions contextuelles sur la TableView/TreeView).
+- Gérer le versionnage côté API (nouvelle version par upload de remplacement).
+
+4) Quotas et retours UX
+- Remplacer `getQuota()` par l’appel réel.
+- Afficher avertissements à 80%/100%, bloquer l’upload si quota atteint.
+
+5) Partage et liens publics
+- Écran (ou dialog) pour créer un lien de partage (expiration ou nombre d’usages).
+- Lister, révoquer, copier le lien. Côté Web, une page publique simple pour télécharger.
+
+6) Sécurité/robustesse côté client
+- Gestion du token (refresh/expiration si applicable, logout).
+- Validation côté client (taille max de fichier, extensions interdites si besoin).
+- Journalisation côté client (actions, erreurs) et reporting minimal.
+
+7) Qualité et industrialisation
+- Tests unitaires des mappers JSON et services.
+- Gestion de configuration (URL API par environnement, variables système/properties).
+- Packaging: jpackage/jlink pour livrer un exécutable.
+
+Astuce : détaillez et validez l’API avec un contrat OpenAPI, puis générez des stubs si souhaité. Travaillez en feature branches et PR revues.
+
+---
+
+## Feuille de route d’amélioration vers un « vrai » logiciel
+
+- Sécurité
+  - Chiffrement côté serveur (au repos) et transport HTTPS strict.
+  - Politique mots de passe, 2FA optionnel, verrouillage après X échecs.
+- UX
+  - Drag & drop pour upload, indicateurs de progression par fichier, recherches et filtres.
+  - Notifications (système) en fin d’upload long.
+- Fonctionnel
+  - Tags, favoris, tri multi‑critères, corbeille/restauration.
+  - Historique/versionning consultable et restauration d’une version.
+- Partage
+  - Droits fins (lecture/écriture), mot de passe sur lien, analytics de téléchargement.
+- Opérations
+  - Paramétrage via fichiers de conf, logs structurés, télémétrie minimale.
+  - CI/CD (lint, build, tests, packaging), publication d’un installeur.
+
+---
+
+## Critères d’évaluation (exemple)
+
+- Fonctionnalités réalisées vs. backlog et démonstration fluide.
+- Qualité du code (clarté, séparation des responsabilités, gestion des erreurs, tests).
+- Robustesse (gestion des états, erreurs réseau, quotas, UX cohérente).
+- Documentation (README, commentaires, `implementation-java.md` suivi, schémas API).
+- Collaboration (git flow, PR, issues, Kanban/Projects, revues code).
+
+---
+
+## Dépannage (FAQ)
+
+- « JavaFX runtime components are missing » : lancez `com.coffrefort.client.Launcher` depuis l’IDE, ou utilisez `mvn javafx:run`.
+- Rien ne s’affiche / plantage au lancement : vérifiez votre JDK (17–21) et que Maven télécharge bien JavaFX.
+- Erreur réseau lors des appels API : pendant le MVP, les données sont simulées. Une fois le backend branché, vérifiez `ApiClient.baseUrl` et les CORS.
+
+---
+
+## Périmètre et architecture (rappel synthétique)
+
+Pour une vision complète du sujet (comptes/JWT, chiffrement au repos, partage, quotas, clients JavaFX/Web, exigences non fonctionnelles, déploiement), référez‑vous au dépôt principal et à votre cahier des charges. En très bref :
+- Comptes & sécurité : création, auth JWT, rôles (Utilisateur/Admin), politique MDp (Argon2id).
+- Fichiers : chiffrement au repos (AES‑256‑GCM recommandé), enveloppe de clés, dossiers hiérarchiques, versionnage.
+- Partage : liens signés (expiration ou nombre d’usages), révocation, journalisation.
+- Quotas : espace par utilisateur avec alertes 80%/100%.
+- Tech : Back Slim/Medoo + MariaDB/Postgres, JavaFX pour le client lourd, Web pour accès public/privé, Docker recommandé.
 
 ---
 
